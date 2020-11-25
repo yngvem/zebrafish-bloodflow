@@ -151,8 +151,8 @@ if __name__ == "__main__":
     pipeline.add_step(
         f=ndimage.zoom,
         name="zoom",
-        kwargs=dict(zoom=(5, 1, 1)),
-        use_checkpoint=True
+        kwargs=dict(zoom=(2.5, 1, 1)),
+        use_checkpoint=False
     )
     pipeline.add_step(
         f=lambda x: ndimage.gaussian_filter(x - 0.5, sigma=1),
