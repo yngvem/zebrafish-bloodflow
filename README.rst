@@ -7,7 +7,7 @@ To run the scripts, install this project in editable mode:
 
 .. code::
 
-    git clone https://github.com/yngvem/confocal_microscopy.git
+    git clone https://github.com/yngvem/confocal-microscopy.git
     cd confocal_microscopy
     pip install -e .
 
