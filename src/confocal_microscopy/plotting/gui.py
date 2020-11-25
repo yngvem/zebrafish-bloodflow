@@ -31,11 +31,13 @@ class NavigationToolbar(mpl_backend.NavigationToolbar2QT):
 
 
 class MatplotlibView(QtWidgets.QWidget):
-    def __init__(self, figure, parent=None, flags=Qt.WindowFlags()):
+    def __init__(self, figure, show_coordinates=True, parent=None, flags=Qt.WindowFlags()):
         super().__init__(parent=parent, flags=flags)
         self.figure = figure
         self.canvas = mpl_backend.FigureCanvasQTAgg(self.figure)
         self.toolbar = NavigationToolbar(self.canvas, self)
+        if not show_coordinates:
+            self.toolbar.remove_tool(len(self.toolbar.actions()) - 1)
 
         self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().addWidget(self.canvas)
@@ -335,9 +337,9 @@ class FloatSlider(QtWidgets.QWidget):
         self.qt_slider.valueChanged.connect(self.update_callbacks)
         self.qt_slider.setMinimum(0)
         self.qt_slider.setMaximum(int((max - min)/step))
-        self.step = step
-        self.min = min
-        self.max = max
+        self._step = step
+        self._min = min
+        self._max = max
 
         self.description = description
         self.readout = readout
@@ -353,11 +355,44 @@ class FloatSlider(QtWidgets.QWidget):
         self.layout().addWidget(self.qt_label)
         self.layout().addWidget(self.qt_slider)
         self.updateGeometry()
-    
+
+    @property
+    def min(self):
+        return self._min
+
+    @min.setter
+    def min(self, new_min):
+        value = self.value
+        self._min = new_min
+        self.qt_slider.setMaximum(int((self.max - self.min)/self.step))
+        self.value = value
+
+    @property
+    def max(self):
+        return self._max
+
+    @max.setter
+    def max(self, new_max):
+        value = self.value
+        self._max = new_max
+        self.qt_slider.setMaximum(int((self.max - self.min)/self.step))
+        self.value = value
+
+    @property
+    def step(self):
+        return self._step
+
+    @step.setter
+    def step(self, new_step):
+        value = self.value
+        self._step = new_step
+        self.qt_slider.setMaximum(int((self.max - self.min)/self.step))
+        self.value = value
+
     @property
     def value(self):
         return self.min + self.qt_slider.value()*self.step
-    
+
     @value.setter
     def value(self, value):
         offset = int((value - self.min)/self.step)
