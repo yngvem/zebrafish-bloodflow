@@ -30,6 +30,7 @@ class IMSLoader(ims.LazyIMSVideoLoader):
         frame -= self._limits[0]
         frame /= self._limits[1]
         frame *= 255
+        frame[frame < 0] = 0
         frame = frame.astype(np.uint8)
         return frame
 
@@ -39,12 +40,12 @@ def track_particles(path, preprocess=True):
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=UserWarning)
-        with IMSLoader(path, limits=(0, 20)) as imsloader:
+        with IMSLoader(path, limits=(10, 30)) as imsloader:
             print("Finding blobs...", flush=True)
             features = tp.batch(imsloader, 5, preprocess=False)
 
     print("Linking blobs between frames...", flush=True)
-    features = tp.link(features, 10, memory=2, adaptive_step=1)
+    features = tp.link(features, 20, memory=2, adaptive_step=1)
 
     print("Filtering out blobs that didn't stay for long...", flush=True)
     features = tp.filter_stubs(features, 5)
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     assert 0 <= task_id and task_id < num_tasks
 
     parent = Path("/home/yngve/Documents/Fish 1 complete/")
-    parent = Path("/media/yngve/TOSHIBA EXT (YNGVE)/7 DAY OLD Fish without tumors/")
+    parent = Path("/media/yngve/TOSHIBA EXT (YNGVE)/fish_data/organised/7 DAY OLD Fish without tumors/")
     files = list(parent.glob("**/*red ch_*.ims"))
     num_digits = len(str(len(files)))
     PREPROCESS = False
@@ -71,10 +72,12 @@ if __name__ == "__main__":
     for i, path in enumerate(files):
         if i % num_tasks != task_id:
             continue
+        if "Fish 7" in str(path):
+            continue
         message = f"Track {i+1:{num_digits}d} out of {len(files):{num_digits}d}:"
         print(message)
         print("="*len(message))
-        out_path = path.parent / f"{path.stem}.csv"
+        out_path = path.parent / f"{path.stem}_min10.csv"
         failed_path = path.parent / f"{path.stem}_failed"
         start_time = time.time()
         if out_path.is_file() or failed_path.is_file():
