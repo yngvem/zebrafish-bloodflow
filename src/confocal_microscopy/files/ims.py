@@ -92,7 +92,8 @@ class LazyIMSVideoLoader(ABC):
         resolution_level=0,
         channel=0,
         limits=None,
-        progress=True
+        progress=True,
+        compute_background=True,
     ):
         self.path = path
         metadata_path = path.parent / f"{path.stem}_metadata.txt"
@@ -107,11 +108,30 @@ class LazyIMSVideoLoader(ABC):
         self._limits = limits
 
         self.should_preprocess = True
+        self.background_signal = None
+        self.should_compute_background = compute_background
 
         if progress:
             self._range = trange
         else:
             self._range = range
+
+    def _compute_background_signal(self):
+        background_signal = 0
+        print("Computing mean", flush=True)
+        for frame in self:
+            background_signal += frame.astype(float)
+        return background_signal / len(self)
+
+    def _compute_limits(self):
+        print("Computing signal limits", flush=True)
+        limits = [np.inf, -np.inf]
+        for frame in self:
+            limits[1] = max(limits[1], np.max(frame - self.background_signal))
+            limits[0] = min(limits[0], np.min(frame - self.background_signal))
+        limits[0] = max(0, limits[0])
+        limits = tuple(limits)
+        return limits
 
     def __enter__(self):
         self.h5 = h5py.File(self.path, "r")
@@ -123,19 +143,11 @@ class LazyIMSVideoLoader(ABC):
 
             should_preprocess = self.should_preprocess
             self.should_preprocess = False
-            self.background_signal = 0
-            print("Computing mean")
-            for frame in self:
-                self.background_signal += frame.astype(float)
+            if self.background_signal is None and self.should_compute_background:
+                self.background_signal = self._compute_background_signal()
             if self._limits is None:
-                print("Computing signal limits")
-                self._limits = [np.inf, -np.inf]
-                for frame in self:
-                    self._limits[1] = max(self._limits[1], np.max(frame - self.background_signal))
-                    self._limits[0] = min(self._limits[0], np.min(frame - self.background_signal))
-                self._limits[0] = max(0, self._limits[0])
-                self._limits = tuple(self._limits)
-            self.background_signal /= len(self)
+                self._limits = self._compute_limits()
+
             self.should_preprocess = should_preprocess
         except Exception as e:
             self.h5.close()
