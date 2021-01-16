@@ -1,6 +1,5 @@
 from skimage import filters
 
-
 __all__ = ["threshold_local"]
 
 

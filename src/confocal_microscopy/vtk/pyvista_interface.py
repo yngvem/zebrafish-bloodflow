@@ -1,5 +1,5 @@
-import pyvista as pv
 import numpy as np
+import pyvista as pv
 
 
 def to_pyvista_grid(image_stack, name="Scalars_", spacing=(1, 1, 1)):

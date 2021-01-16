@@ -1,14 +1,14 @@
 import os
+
 os.environ['ETS_TOOLKIT'] = 'qt4'
 
-import numpy as np
-from PyQt5 import  QtWidgets
-from pyface.qt import QtGui, QtCore
-from traits.api import HasTraits, Instance, on_trait_change
-from traitsui.api import View, Item
-from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor
-
 import mayavi.mlab as mlab
+import numpy as np
+from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor
+from pyface.qt import QtCore, QtGui
+from PyQt5 import QtWidgets
+from traits.api import HasTraits, Instance, on_trait_change
+from traitsui.api import Item, View
 
 
 class Viewer(HasTraits):

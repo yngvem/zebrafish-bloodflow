@@ -1,21 +1,20 @@
-from pathlib import Path
-import warnings
-import time
 import argparse
+import time
+import warnings
+from pathlib import Path
 
+import h5py
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import h5py
-
-import matplotlib.pyplot as plt
 import pims
 import trackpy as tp
-from skimage.io import imread
 from scipy import ndimage
+from skimage.io import imread
 from tqdm import tqdm, trange
 
-from confocal_microscopy.utils import apply_slicewise
 from confocal_microscopy.files import ims
+from confocal_microscopy.utils import apply_slicewise
 
 tp.enable_numba()
 tp.quiet()

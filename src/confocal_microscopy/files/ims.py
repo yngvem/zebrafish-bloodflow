@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
-from tqdm import trange
-import numpy as np
 import h5py
+import numpy as np
+from tqdm import trange
 
 
 def load_image_stack(path, resolution_level=0, time_point=0, channel=0):
@@ -67,7 +67,7 @@ def parse_config(file):
             line = line[1:]
         if curr_level < prev_level:
             num_levels_up = prev_level - curr_level
-            for level in num_levels_up:
+            for level in range(num_levels_up):
                 stack.pop()
         line = line.strip()
         if line[0] == "[":

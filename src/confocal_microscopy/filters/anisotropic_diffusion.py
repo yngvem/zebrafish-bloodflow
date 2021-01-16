@@ -1,7 +1,6 @@
 import numpy as np
 from tqdm import trange
 
-
 __all__ = ["anisotropic_diffusion"]
 
 

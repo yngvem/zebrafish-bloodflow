@@ -1,8 +1,8 @@
-from contextlib import contextmanager
 import pickle
+from contextlib import contextmanager
+
 import h5py
 from skimage import io
-
 
 __all__ = ["Pipeline", "PreviousPipelineValue"]
 

@@ -1,19 +1,21 @@
-from PyQt5 import QtWidgets
 import os
+
 import numpy as np
-from numpy import cos
 from mayavi import mlab
-from confocal_microscopy.files.ims import load_image_stack
+from numpy import cos
+from PyQt5 import QtWidgets
 from scipy.ndimage import zoom
 from skimage.filters import threshold_otsu
 
+from confocal_microscopy.files.ims import load_image_stack
+
 os.environ['ETS_TOOLKIT'] = 'qt4'
-from pyface.qt import QtGui, QtCore  # noqa: E402
+from mayavi.core.ui.api import (MayaviScene, MlabSceneModel,  # noqa: E402
+                                SceneEditor)
+from pyface.qt import QtCore, QtGui  # noqa: E402
 from traits.api import HasTraits, Instance, on_trait_change  # noqa: E402
 from traits.trait_numeric import Array  # noqa: E402
-from traitsui.api import View, Item  # noqa: E402
-from mayavi.core.ui.api import MayaviScene, MlabSceneModel, SceneEditor  # noqa: E402
-
+from traitsui.api import Item, View  # noqa: E402
 
 ## create Mayavi Widget and show
 

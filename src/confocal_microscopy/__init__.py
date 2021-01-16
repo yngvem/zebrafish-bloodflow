@@ -5,5 +5,4 @@ __email__ = 'yngve.m.moe@gmail.com'
 __version__ = '0.0.1'
 
 
-from . import files
-from . import color
+from . import color, files

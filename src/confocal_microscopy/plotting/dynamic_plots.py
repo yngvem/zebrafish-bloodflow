@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 import numpy as np
-
+from matplotlib.animation import FuncAnimation
 
 
 def implay(image_stack, *args, fig=None, ax=None, **kwargs):
@@ -21,4 +20,4 @@ def implay(image_stack, *args, fig=None, ax=None, **kwargs):
 
 
     return FuncAnimation(fig, update, frames=np.arange(0, image_stack.shape[0]),
-                         init_func=init, blit=True)
+                         init_func=init, interval=20, blit=True)

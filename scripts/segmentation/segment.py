@@ -1,23 +1,24 @@
 from pathlib import Path
 
 import h5py
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
+import medvis
 import morphsnakes
 import numpy as np
-from scipy import ndimage
-from skimage import exposure, io, filters
-from tqdm import tqdm, trange
 from matplotlib.animation import FuncAnimation
-import medvis
-import matplotlib.cm as cm
+from scipy import ndimage
+from skimage import exposure, filters, io
+from tqdm import tqdm, trange
 
+import confocal_microscopy.filters as cm_filters
+import confocal_microscopy.filters.exposure as cm_exposure
 from confocal_microscopy.files import ims
 from confocal_microscopy.filters import anisotropic_diffusion
-import confocal_microscopy.filters.exposure as cm_exposure
-import confocal_microscopy.filters as cm_filters
-from confocal_microscopy.plotting import implay
-from confocal_microscopy.utils import Pipeline, PreviousPipelineValue, apply_slicewise
 from confocal_microscopy.mask import filter_small_regions
+from confocal_microscopy.plotting import implay
+from confocal_microscopy.utils import (Pipeline, PreviousPipelineValue,
+                                       apply_slicewise)
 from confocal_microscopy.vtk import pyvista_interface
 
 log = []
