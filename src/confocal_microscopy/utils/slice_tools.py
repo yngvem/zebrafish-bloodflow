@@ -3,7 +3,6 @@ from functools import wraps
 import numpy as np
 from tqdm import trange
 
-
 __all__ = ["apply_slicewise"]
 
 
