@@ -86,7 +86,8 @@ def make_clipping_polygon(normal, midpoint, bounds):
         slope = np.array([0, 1])
     else:
         slope = np.array([1, -normal[0]/normal[1]])
-
+    
+    assert normal.T@slope < 1e-5
     normal = normal / np.linalg.norm(normal)
     slope = slope / np.linalg.norm(slope)
     polygon = [slope, (slope + 2*normal), -slope + 2*normal, -slope, slope]
@@ -171,7 +172,7 @@ def find_centerline_from_mask(mask, k_neighbours=2):
     return find_centerline_coordinates(skeleton_img, endpoints[0], endpoints[1], k_neighbours)
 
 
-def clip_roi_based_on_centerline(roi, centerline, bounds, normal_estimation_length=5):
+def clip_roi_based_on_centerline(roi, centerline, bounds, normal_estimation_length=2):
     """
     Remove the part of the ROI that extends past the centerline. 
 
@@ -201,10 +202,10 @@ def clip_roi_based_on_centerline(roi, centerline, bounds, normal_estimation_leng
         The clipped ROI.
     """
     # Find normal vectors
-    start_normal = centerline[0] - centerline[normal_estimation_length]
-    end_normal = centerline[-1] - centerline[-(normal_estimation_length + 1)]
+    start_normal = centerline[normal_estimation_length] - centerline[0]
+    end_normal = (centerline[-1] - centerline[-(normal_estimation_length + 1)])
 
-    start_clipping_polygon = make_clipping_polygon(start_normal, centerline[0], bounds)
+    start_clipping_polygon = make_clipping_polygon(-start_normal, centerline[0], bounds)
     end_clipping_polygon = make_clipping_polygon(end_normal, centerline[-1], bounds)
     
     new_shape = Polygon(zip(roi['x'], roi['y']))
@@ -212,11 +213,11 @@ def clip_roi_based_on_centerline(roi, centerline, bounds, normal_estimation_leng
     end_halfspace = Polygon(end_clipping_polygon)
     new_shape = new_shape.difference(start_halfspace).difference(end_halfspace)
     print(new_shape)
+    #debug_trace()
     return {
         'x': new_shape.exterior.xy[0].tolist(),
         'y': new_shape.exterior.xy[1].tolist()
     }
-
 
 def find_centerline_and_clip_roi(roi, shape, k_neighbours=2):
     """
@@ -232,7 +233,7 @@ def find_centerline_and_clip_roi(roi, shape, k_neighbours=2):
         Number of neighbours used to generate the KNN graph used for centerline
         ordering.
     """
-    mask_img = polygon2mask(shape, np.stack((roi['y'], roi['x'])).T)
+    mask_img = polygon2mask(shape[::-1], np.stack((roi['x'], roi['y'])).T)
     centerline = find_centerline_from_mask(mask_img, k_neighbours=k_neighbours)
     roi = clip_roi_based_on_centerline(roi, centerline, max(*shape))
 
