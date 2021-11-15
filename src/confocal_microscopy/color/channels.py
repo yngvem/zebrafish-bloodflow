@@ -1,3 +1,5 @@
+"""Used for visualisation.
+"""
 import numpy as np
 
 
