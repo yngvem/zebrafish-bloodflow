@@ -1,3 +1,5 @@
+"""Used for segmentation.
+"""
 import numpy as np
 
 __all__ = ["reduce_dynamic_range", "normalise"]
