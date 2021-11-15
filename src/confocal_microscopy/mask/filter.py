@@ -1,3 +1,5 @@
+"""Used for segmentation
+"""
 from scipy import ndimage
 
 

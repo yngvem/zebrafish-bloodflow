@@ -1,3 +1,5 @@
+"""Used for segmentation.
+"""
 import numpy as np
 from tqdm import trange
 

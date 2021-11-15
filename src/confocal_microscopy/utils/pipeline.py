@@ -1,3 +1,6 @@
+"""Used for segmentation.
+"""
+
 import pickle
 from contextlib import contextmanager
 
