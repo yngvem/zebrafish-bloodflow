@@ -7,12 +7,46 @@ from skimage.draw import polygon2mask
 from skimage.morphology import skeletonize
 from sklearn.neighbors import kneighbors_graph
 from numba import njit, prange
+import matplotlib.pyplot as plt
+
+
+def find_distance_to_centerline_from_roi(roi, shape, centerline):
+    """For each pixel, find the distance to the centerline, and set everything outside the ROI to nan.
+    """
+    distance_map = np.ones(shape)
+    distance_map[centerline[:, 1], centerline[:, 0]] = 0
+    distance_map = ndimage.distance_transform_edt(distance_map)
+
+    mask = np.stack([roi['y'], roi['x']]).T
+    outside_bounds = polygon2mask(shape, mask).astype(bool)
+    distance_map[~outside_bounds] = np.nan
+    return distance_map
+
+
+
+def find_nearest_centerline_direction(nearest_centerline_idx, centerline):
+    """Find the direction (unit vector) of the nearest point on the centerline.
+    """
+    relevant_pixel_mask = nearest_centerline_idx >=0
+    relevant_nearest_idx = nearest_centerline_idx[relevant_pixel_mask]
+    centerline_direction = find_centerline_direction(centerline)
+
+    # X component
+    nearest_centerline_x_component = np.zeros_like(nearest_centerline_idx) + np.nan
+    nearest_centerline_x_component[relevant_pixel_mask] = centerline_direction[relevant_nearest_idx, 0]
+
+    # Y component
+    nearest_centerline_y_component = np.zeros_like(nearest_centerline_idx) + np.nan
+    nearest_centerline_y_component[relevant_pixel_mask] = centerline_direction[relevant_nearest_idx, 1]
+    
+    nearest_direction = np.stack([nearest_centerline_x_component, nearest_centerline_y_component], axis=-1)
+    return nearest_direction / np.linalg.norm(nearest_direction, axis=-1, keepdims=True)
 
 
 @njit(nogil=True, fastmath=True, cache=True)
 def _populate_nearest_centerline_idx(centerline_idx, roi_indices_0, roi_indices_1, centerline):
     idx = np.zeros((1, 2))
-    for i in range(len(roi_indices_0)):
+    for i in prange(len(roi_indices_0)):
         idx_0 = roi_indices_0[i]
         idx_1 = roi_indices_1[i]
 
@@ -46,8 +80,10 @@ def find_all_nearest_centerline_indices(mask, centerline):
 
 
 def find_all_nearest_centerline_indices_from_roi(roi, shape, centerline):
-    mask_img = polygon2mask(shape, np.stack((roi['y'], roi['x'])).T)
-    return find_all_nearest_centerline_indices(mask_img, centerline)
+    """Given shape, roi and centerline, create image so each pixel within the ROI represents the distance to the centerline.
+    """
+    mask_img = polygon2mask(shape[::-1], np.stack((roi['x'], roi['y'])).T)
+    return find_all_nearest_centerline_indices(mask_img, centerline).T
 
 
 def make_clipping_polygon(normal, midpoint, bounds):
@@ -212,8 +248,6 @@ def clip_roi_based_on_centerline(roi, centerline, bounds, normal_estimation_leng
     start_halfspace = Polygon(start_clipping_polygon)
     end_halfspace = Polygon(end_clipping_polygon)
     new_shape = new_shape.difference(start_halfspace).difference(end_halfspace)
-    print(new_shape)
-    #debug_trace()
     return {
         'x': new_shape.exterior.xy[0].tolist(),
         'y': new_shape.exterior.xy[1].tolist()
@@ -255,4 +289,4 @@ def find_centerline_direction(centerline):
     direction[0] = centerline[1] - centerline[0]
     direction[-1] = centerline[-1] - centerline[-2]
     direction[1:-1] = (centerline[2:] - centerline[:-2])
-    return direction / np.linalg.norm(direction, axis=1)
+    return direction / np.linalg.norm(direction, axis=1, keepdims=True)
