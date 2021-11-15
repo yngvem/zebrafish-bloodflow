@@ -41,16 +41,25 @@ def load_video_stack(path, resolution_level=0, channel=0, progress=False, num_ti
     return np.stack(frames, axis=0)
 
 
-def load_physical_image_size(path):
+def _stringify_bytes_array(bytes_array):
+    return ''.join(bytes_array.astype(str))
+
+
+def load_ims_metadata(path):
     with h5py.File(path, "r") as h5:
-        image_info = h5["DataSetInfo/Image"].attrs
-        max_vals = [image_info["ExtMax2"], image_info["ExtMax0"], image_info["ExtMax1"]]
-        min_vals = [image_info["ExtMin2"], image_info["ExtMin0"], image_info["ExtMin1"]]
+        info = h5["DataSetInfo"]
+        attributes = {
+            group: {k: _stringify_bytes_array(v) for k, v in info[group].attrs.items()}
+            for group in info
+        }
+    return attributes
 
-        # Decode byte-string into float
-        max_vals = [float(max_val.tobytes().decode("ASCII")) for max_val in max_vals]
-        min_vals = [float(min_val.tobytes().decode("ASCII")) for min_val in min_vals]
 
+def find_physical_image_size(attrs):
+    image_attrs = attrs['Image']
+    
+    max_vals = [float(image_attrs[f'ExtMax{i}']) for i in [2, 1, 0]]
+    min_vals = [float(image_attrs[f'ExtMin{i}']) for i in [2, 1, 0]]
     return [max_val - min_val for max_val, min_val in zip(max_vals, min_vals)]
 
 
