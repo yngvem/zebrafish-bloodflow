@@ -1,12 +1,13 @@
 import papermill as pm
 from pathlib import Path
 from subprocess import run
+import multiprocessing
+from functools import partial
 
 
-parent = Path("/media/yngve/TOSHIBA EXT (YNGVE)/fish_data/organised/")
-vessels = sorted({p.parent for p in parent.glob("**/*red ch_*.ims")})
-for i, image_parent in enumerate(vessels):
-    print("Vessel: ", i, "of", len(vessels))
+def run_summary(params, N):
+    i, image_parent = params
+    print("Vessel: ", i, "of", N)
 
     try:
         bg_path = next(image_parent.parent.glob("*Snap*.ims"))
@@ -15,7 +16,7 @@ for i, image_parent in enumerate(vessels):
             bg_path = next(image_parent.glob("*Snap*.ims"))
         except StopIteration:
             print("No background")
-            continue
+            return
     
 
     filename = image_parent / f"summary.ipynb"
@@ -33,3 +34,10 @@ for i, image_parent in enumerate(vessels):
         print(e)
         pass
 
+parent = Path("/media/yngve/TOSHIBA EXT (YNGVE)/fish_data/organised/")
+vessels = sorted({p.parent for p in parent.glob("**/*red ch_*.ims")})
+for data in enumerate(vessels):
+    run_summary(data, N=len(vessels))
+
+#with multiprocessing.Pool(4) as p
+#    p.map(partial(run_summary, N=len(vessels)), enumerate(vessels))
